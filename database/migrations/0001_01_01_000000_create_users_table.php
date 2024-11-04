@@ -14,83 +14,60 @@ return new class extends Migration
         // Users Table
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username');
-            $table->string('password');
-            $table->string('role')->default('user');
+            $table->string('username', 255);
+            $table->string('password', 255);
+            $table->enum('role', ['admin', 'user'])->default('user');
             $table->rememberToken();
             $table->timestamps();
         });
 
         // Mitra Table
         Schema::create('mitra', function (Blueprint $table) {
-            $table->id();
-            // $table->foreignId('user_id')->constrained('users');
-            $table->string('name_mitra');
-            $table->string('logo_mitra');
+            $table->integer('id_mitra', 11)->primary();
+            $table->string('name_mitra', 255);
+            $table->string('logo_mitra', 255);
             $table->timestamps();
         });
 
-        // Harga Table
-        Schema::create('harga', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('harga');
-            $table->timestamps();
-        });
-        
-        // jenis_kain Table
-        Schema::create('jenis_kain', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('jenis');
-            $table->timestamps();
-        });
-        
-        // ketersediaan Table
-        Schema::create('ketersediaan', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('ketersediaan');
-            $table->timestamps();
-        });
-        
-        // Supplier Table
-        Schema::create('supplier', function (Blueprint $table) {
-            $table->id();
-            $table->string('nama_supplier')->unique();
-            $table->string('email');
-            $table->string('alamat');
-            $table->string('logo_supplier');
-            $table->foreignId('harga_id')->constrained('harga');
-            $table->foreignId('jenis_id')->constrained('jenis_kain');
-            $table->foreignId('ket_id')->constrained('ketersediaan');
-            $table->timestamps();
-        });
+// Migrasi untuk tabel harga
+Schema::create('harga', function (Blueprint $table) {
+    $table->id(); // Menggunakan $table->id() untuk membuat id_harga auto_increment
+    $table->string('harga', 255);
+    $table->timestamps();
+});
 
-        // grade Table
-        Schema::create('grade', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('nama_supplier');
-            $table->foreign('nama_supplier')->references('nama_supplier')->on('supplier')->onUpdate('cascade');
-            $table->string('hasil');
-            $table->timestamps();
-        });
-        
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+// Migrasi untuk tabel jenis_kain
+Schema::create('jenis_kain', function (Blueprint $table) {
+    $table->id(); // Menggunakan $table->id() untuk membuat id_jenis auto_increment
+    $table->string('jenis_kain', 255);
+    $table->timestamps();
+});
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+// Migrasi untuk tabel ketersediaan
+Schema::create('ketersediaan', function (Blueprint $table) {
+    $table->id(); // Menggunakan $table->id() untuk membuat id_ketersediaan auto_increment
+    $table->string('ketersediaan_barang', 255);
+    $table->timestamps();
+});
+
+// Migrasi untuk tabel supplier (pastikan tabel yang dirujuk sudah ada)
+Schema::create('supplier', function (Blueprint $table) {
+    $table->id(); // Menggunakan $table->id() untuk membuat id_supplier auto_increment
+    $table->string('nama_supplier', 255)->unique();
+    $table->string('alamat', 255);
+    $table->string('email', 255);
+    $table->string('cat_tambahan', 255)->nullable();
+    $table->unsignedBigInteger('id_harga');
+    $table->unsignedBigInteger('id_jenis');
+    $table->unsignedBigInteger('id_ketersediaan');
+    $table->timestamps();
+
+    // Foreign keys
+    $table->foreign('id_harga')->references('id')->on('harga')->onUpdate('cascade')->onDelete('cascade');
+    $table->foreign('id_jenis')->references('id')->on('jenis_kain')->onUpdate('cascade')->onDelete('cascade');
+    $table->foreign('id_ketersediaan')->references('id')->on('ketersediaan')->onUpdate('cascade')->onDelete('cascade');
+});
+
     }
 
     /**
@@ -100,12 +77,9 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
         Schema::dropIfExists('mitra');
+        Schema::dropIfExists('supplier');
         Schema::dropIfExists('harga');
         Schema::dropIfExists('jenis_kain');
         Schema::dropIfExists('ketersediaan');
-        Schema::dropIfExists('supplier');
-        Schema::dropIfExists('grade');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
     }
 };
